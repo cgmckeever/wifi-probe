@@ -8,7 +8,7 @@
 # On the screen it will simply prints a request as it comes in. If the database
 # already contains a ssid/mac combination, it is overwritten.
 #
-# Reconnect your wifi if your network connection
+# Reconnect your wifi if your network connection 
 # is lost after after using this script
 #
 # Prerequisites
@@ -35,9 +35,9 @@ import datetime
 import os
 
 ### Settings
-
-# The interface that is to be inspected. Make sure monitor mode is enabled for
-# this interface.
+#
+# The interface that is to be inspected. 
+# Make sure monitor mode is enabled for this interface.
 monitor_dev = "en0"
 
 # Enable output to stdout
@@ -49,8 +49,10 @@ save_to_db = False
 # Path of the sqlite3-database.
 db_path = "/tmp/probes.db"
 
-# Tcpdump may stop/crash if monitor_dev goes offline. Restart tcpdump in 
-# restart_delay_sec seconds after it stops/crashes.
+known_ssids = ['ozone2', 'ozone2e']
+
+# Tcpdump may stop/crash if monitor_dev goes offline. 
+# Restart tcpdump in `restart_delay_sec seconds`
 restart_delay_sec = 5 
 
 ### Program
@@ -58,7 +60,8 @@ mainConn = 0
 mainCursor = 0
 
 def prettyPrint(ant, mac, ssid):
-    pad_spaces = 32 - len(ssid) # 32 is the max length of a 802.11 SSID
+    # 32 is the max length of a 802.11 SSID
+    pad_spaces = 32 - len(ssid) 
     while pad_spaces > 0:
         ssid += ' '
         pad_spaces -= 1
@@ -73,8 +76,8 @@ def startProbing():
         
     patt = ".*(-\d+)dBm signal.+SA:([0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+).+Probe Request \((.+)\)"    
     while True:
-        line = proc.stdout.readline().decode('UTF-8')
-        line = line.rstrip()
+        line = proc.stdout.readline().decode('UTF-8').rstrip()
+
         if line != '':
             m = re.search(patt, line)
             if m is not None and len(m.groups()) == 3:
@@ -83,36 +86,39 @@ def startProbing():
                 ssid = m.group(3).rstrip()
                 timestamp = int(time.time())
                 
-                if output_to_stdout:
-                    prettyPrint(ant, mac, ssid)
-                if save_to_db:
-                    mainCursor.execute("INSERT OR REPLACE INTO probes VALUES (?,?,?,?)", (ssid, mac, ant, timestamp))
-                    mainConn.commit()
+                if ssid not in known_ssids:
+                    if output_to_stdout:
+                        prettyPrint(ant, mac, ssid)
+
+                    if save_to_db:
+                        mainCursor.execute("INSERT OR REPLACE INTO probes VALUES (?,?,?,?)", (ssid, mac, ant, timestamp))
+                        mainConn.commit()
                     
         else:
             break      
 
 def printIntro():
     print ('+------------------------------------------------------------+')
-    print ('+ Scanner for enumerating probe requests from base stations  +')
+    print ('+ Scanner for enumerating probe requests                     +')
     print ('+                                                            +')
     print ('+ (c) 2017 Ralon cybersecurity                               +')
     print ('+ Loran Kloeze - loran@ralon.nl - @lorankloeze               +')
     print ('+ License: MIT                                               +')
     print ('+                                                            +')
     print ('+------------------------------------------------------------+')
-    print
+    print ('')
+
+    print ('Start scanning...')
     print ('Using monitor device', monitor_dev)
+
     if save_to_db:
         print ('Saving requests to database at', db_path)
+
     if output_to_stdout:
         print ('Pretty printing request is enabled')
         print ('It may take a while before the first requests appear')    
-    print ('Start scanning...')
-    print ()
-    if output_to_stdout:
+        print ('')
         print ('Time     SSID                             Mac-address       Signal')
-    
     
 def main():    
     printIntro()
