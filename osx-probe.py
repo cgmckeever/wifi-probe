@@ -38,7 +38,7 @@ import os
 #
 # The interface that is to be inspected. 
 # Make sure monitor mode is enabled for this interface.
-monitor_dev = "en0"
+monitor_dev = "mon0"
 
 # Enable output to stdout
 output_to_stdout = True
@@ -59,6 +59,11 @@ restart_delay_sec = 5
 mainConn = 0
 mainCursor = 0
 
+def output(*args): 
+    with open('wifi-scan.txt', 'a+') as f:
+        print(" ".join(str(a) for a in args), file=f)
+        print(" ".join(str(a) for a in args))
+
 def prettyPrint(ant, mac, ssid):
     # 32 is the max length of a 802.11 SSID
     pad_spaces = 32 - len(ssid) 
@@ -67,7 +72,7 @@ def prettyPrint(ant, mac, ssid):
         pad_spaces -= 1
     
     niceTime = datetime.datetime.today().strftime('%H:%M:%S')
-    print (niceTime, ssid, mac, ant)
+    output(niceTime, ssid, mac, ant)
     
 def startProbing():    
     FNULL = open(os.devnull, 'w')
@@ -98,27 +103,27 @@ def startProbing():
             break      
 
 def printIntro():
-    print ('+------------------------------------------------------------+')
-    print ('+ Scanner for enumerating probe requests                     +')
-    print ('+                                                            +')
-    print ('+ (c) 2017 Ralon cybersecurity                               +')
-    print ('+ Loran Kloeze - loran@ralon.nl - @lorankloeze               +')
-    print ('+ License: MIT                                               +')
-    print ('+                                                            +')
-    print ('+------------------------------------------------------------+')
-    print ('')
+    output('+------------------------------------------------------------+')
+    output('+ Scanner for enumerating probe requests                     +')
+    output('+                                                            +')
+    output('+ (c) 2017 Ralon cybersecurity                               +')
+    output('+ Loran Kloeze - loran@ralon.nl - @lorankloeze               +')
+    output('+ License: MIT                                               +')
+    output('+                                                            +')
+    output('+------------------------------------------------------------+')
+    output('')
 
-    print ('Start scanning...')
-    print ('Using monitor device', monitor_dev)
+    output('Start scanning...')
+    output('Using monitor device ' + monitor_dev)
 
     if save_to_db:
-        print ('Saving requests to database at', db_path)
+        output('Saving requests to database at ' + db_path)
 
     if output_to_stdout:
-        print ('Pretty printing request is enabled')
-        print ('It may take a while before the first requests appear')    
-        print ('')
-        print ('Time     SSID                             Mac-address       Signal')
+        output('Pretty printing request is enabled')
+        output('It may take a while before the first requests appear')    
+        output('')
+        output('Time     SSID                             Mac-address       Signal')
     
 def main():    
     printIntro()
@@ -138,7 +143,7 @@ def main():
     
     while True:
         startProbing()
-        print ('Tcpdump crashed/stopped, waiting for', restart_delay_sec, 'seconds to restart')
+        output('Tcpdump crashed/stopped, waiting for ' + str(restart_delay_sec) + ' seconds to restart')
         time.sleep(restart_delay_sec)
     
     if save_to_db:        
